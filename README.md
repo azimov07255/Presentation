@@ -34,7 +34,18 @@ node tests/visual.cjs    # barcha maket × mavzu skrinshotlari (tests/out)
 | `js/present.js` | namoyish rejimi |
 | `sw.js` | offline; **o‘zgartirsangiz `VERSION` ni oshiring** |
 
+## 2-bosqich: AI (tayyor)
+- **AI bilan yaratish:** mavzu yozing yoki **PDF / DOCX / TXT** yuklang (kitob ham mumkin: uzun matn avval qisqartiriladi, betlarni tanlash mumkin) → **3 xil variant** (Klassik, Vizual, Hikoya) → dizaynni tanlab, bittasini oching. Til: o‘zbek (lotin/kirill), rus, ingliz.
+- **Slayd bilan ishlash:** qayta yozish, qisqartirish, kengaytirish, imlo, tarjima, spiker izohi yozish va o‘z buyrug‘ingiz. Tanlangan matnga yoki butun slaydga qo‘llanadi; Undo bilan qaytariladi.
+- **AI hech qachon raqam, iqtibos yoki manba to‘qimaydi** (prompt shunday talab qiladi); baribir muhim joylarni tekshiring.
+
+### Arxitektura va sozlash
+- Brauzer → Supabase **Edge Function `pres-ai`** (`supabase/functions/pres-ai/`) → Gemini / Groq (ixtiyoriy Anthropic). Kalitlar faqat serverda.
+- Loyiha: `testlar-app` (hisoblar `js/config.js`). Ruxsat: `can_pres()` — owner yoki **`pres`** guruhidagi faol foydalanuvchi; kunlik limit `AI_DAILY_LIMIT` (standart 30 so‘rov).
+- Migratsiya: `supabase/migrations/20261122_pres_ai.sql` (`can_pres`, `pres_ai_usage`, `pres_ai_hit`).
+- Secrets (Supabase → Edge Functions → Secrets): `GEMINI_API_KEY` va/yoki `GROQ_API_KEY` (IELTS bilan umumiy), ixtiyoriy `ANTHROPIC_API_KEY`, `PRES_MODEL`.
+- Sinovlar: `node --test tests/ai-lib.test.mjs` (AI javobini tekshirish), `node tests/ai.cjs` (butun oqim, tarmoq soxtalashtirilgan).
+
 ## Reja
-2. AI (Claude): mavzu bo‘yicha bir nechta variant, slaydni qayta yozish/qisqartirish — Supabase Edge Function orqali (API kalit faqat serverda)
-3. PDF / DOCX / kitobdan taqdimot yaratish
-4. Hisoblar, obuna va AI limitlari (sotish uchun); jadval va diagramma elementlari
+3. Rasm qidirish/yaratish, jadval va diagramma elementlari
+4. Hisoblar boshqaruvi, obuna va to‘lov (sotish uchun)

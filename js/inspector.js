@@ -6,6 +6,7 @@ import { LAYOUTS, newSlide } from './layouts.js';
 import { thumb } from './render.js';
 import { pickImageFile, readImage, setInspectorHook, startEdit } from './canvas.js';
 import { addAsset } from './model.js';
+import { aiSlide, askCustom } from './ai.js';
 
 let root, tab = 'design', sig = '', syncs = [];
 
@@ -89,6 +90,14 @@ function align(kind) {
   }));
 }
 
+// ---------- AI yordamchi (tezkor tugmalar) ----------
+function aiSection(scopeText) {
+  const b = (op, l) => h('button', { class: 'btn ai-chip', type: 'button', onclick: () => aiSlide(op), html: ic('magic', 14) + ' ' + l });
+  return sec('AI yordamchi', h('p', { class: 'mu s', style: { margin: '0 0 10px' } }, scopeText),
+    h('div', { class: 'chips' }, b('rewrite', 'Qayta yoz'), b('shorten', 'Qisqartir'), b('expand', 'Kengaytir'), b('fix', 'Imlo'), b('notes', 'Izoh yoz'),
+      h('button', { class: 'btn ai-chip', type: 'button', onclick: askCustom, html: ic('text', 14) + ' Boshqa…' })));
+}
+
 // ---------- tanlangan element ----------
 function elementTab(box) {
   const els = selEls(); if (!els.length) return;
@@ -101,6 +110,7 @@ function elementTab(box) {
 
   if (all.length === 1 && all[0] === 'text') {
     box.append(
+      aiSection('Tanlangan matnga qo‘llanadi'),
       sec('Matn',
         row('Shrift', fontSel()),
         row('O‘lcham', num('fs', { min: 8, max: 400, suffix: 'px' }), h('div', { class: 'seg' }, ...[['fw', 'bold', 'Qalin', 700, 400], ['fi', 'italic', 'Kursiv'], ['u', 'underline', 'Tagiga chizish'], ['up', 'caps', 'KATTA HARF']].map(([p, i, t, on_, off]) => {
@@ -152,6 +162,7 @@ function elementTab(box) {
 // ---------- dizayn ----------
 function designTab(box) {
   const th = theme();
+  box.append(aiSection('Tanlanmagan bo‘lsa, butun slayd matniga qo‘llanadi'));
   // mavzular
   const tg = h('div', { class: 'theme-grid' }, ...THEMES.map(t => {
     const b = h('button', { class: 'theme-card' + (t.id === th.id ? ' on' : ''), title: t.name, onclick: () => setTheme(t.id) }, thumb(newSlide('title', t, { title: t.name, subtitle: 'Mavzu namunasi', label: '' }), t, {}, 116), h('span', {}, t.name));

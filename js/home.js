@@ -6,6 +6,7 @@ import { thumb } from './render.js';
 import { newSlide } from './layouts.js';
 import { newDeck } from './model.js';
 import { TEMPLATES } from './templates.js';
+import { openGenerate } from './ai.js';
 
 const ago = t => {
   const m = Math.round((Date.now() - t) / 60000);
@@ -29,7 +30,7 @@ export async function renderHome(root, { go, toggleUI }) {
     h('p', {}, 'Chiroyli dizayn, erkin tahrir va haqiqiy PowerPoint (.pptx) eksport. Internetsiz ham ishlaydi.'),
     h('div', { class: 'hero-cta' },
       h('button', { class: 'big', onclick: () => newDialog(go), html: ic('plus', 18) + ' Yangi taqdimot' }),
-      h('button', { class: 'btn ghost lg', onclick: aiSoon, html: ic('sparkle', 18) + ' AI bilan yaratish <i class="soon">tez orada</i>' })));
+      h('button', { class: 'btn ghost lg', onclick: () => aiNew(go), html: ic('sparkle', 18) + ' AI bilan yaratish' })));
   root.append(head, hero);
 
   const sec = h('section', { class: 'decks' }, h('h2', {}, 'Taqdimotlaringiz', decks.length ? h('span', { class: 'cnt' }, String(decks.length)) : null));
@@ -60,10 +61,11 @@ async function duplicate(r) {
   await saveDeck(c, r.assets || {});
 }
 
-function aiSoon() {
-  modal(h('div', { class: 'dlg' }, h('h3', {}, 'AI yordamchi — keyingi bosqich'),
-    h('p', { class: 'mu' }, 'Mavzuni yozasiz yoki PDF / kitob yuklaysiz — AI bir nechta variant taklif qiladi, siz birini tanlab tahrirlaysiz. Alohida slaydni “qayta yoz”, “qisqartir” deb o‘zgartirish ham bo‘ladi.'),
-    h('p', { class: 'mu' }, 'Hozircha muharrir, dizaynlar va eksport tayyor. AI keyingi yangilanishda ulanadi.')));
+function aiNew(go) {
+  openGenerate({ mode: 'new', onPick: async ({ title, slides, themeId }) => {
+    const d = newDeck(themeId, title || 'AI taqdimot'); d.slides = slides;
+    await saveDeck(d, {}); go('#/d/' + d.id);
+  } });
 }
 
 async function importFile(go) {

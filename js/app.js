@@ -1,6 +1,6 @@
 // Ilova qobig‘i: yo‘naltirish (home / muharrir), yuqori panel, qo‘shish asboblari, saqlash
 import { APP_NAME, h, ic, $, toast, uid, debounce, W, H } from './util.js';
-import { S, on, emit, openDeck, undo, redo, addEl, theme, slide, select, touch } from './model.js';
+import { S, on, emit, openDeck, undo, redo, addEl, theme, slide, select, touch, insertSlides } from './model.js';
 import { loadWebFonts } from './themes.js';
 import { saveDeck, loadDeck } from './store.js';
 import { initCanvas, fit, startEdit, pickImageFile, addImageFile, endEdit } from './canvas.js';
@@ -9,6 +9,8 @@ import { initRail } from './rail.js';
 import { renderHome } from './home.js';
 import { present } from './present.js';
 import { exportPPTX, exportPDF, exportJSON } from './export.js';
+import { openGenerate, aiSlide, askCustom, buildSlides } from './ai.js';
+import * as Cloud from './cloud.js';
 
 const app = $('#app');
 let editorEl = null, saveState = 'saved';
@@ -77,6 +79,20 @@ function buildEditor() {
     { l: 'PDF', s: 'Chop etish → PDF sifatida saqlash', i: 'file', fn: () => { endEdit(); exportPDF(); } },
     { sep: 1 }, { l: 'Zaxira (.json)', s: 'Keyin qayta ochish uchun', i: 'copy', fn: () => exportJSON() },
   ], 'right'), html: ic('download', 16) + ' <span class="hide-s">Eksport</span>' });
+  const aiBtn = h('button', { class: 'btn ai-btn', onclick: e => popover(e.currentTarget, [
+    { l: 'Yangi slaydlar (AI)', s: 'Mavzu yoki fayl asosida 3 variant', i: 'sparkle', fn: () => { endEdit(); openGenerate({ mode: 'append', onPick: ({ slides }) => insertSlides(slides) }); } },
+    { sep: 1 },
+    { l: 'Qayta yozish', s: 'Tanlangan matn yoki butun slayd', i: 'magic', fn: () => aiSlide('rewrite') },
+    { l: 'Qisqartirish', i: 'magic', fn: () => aiSlide('shorten') },
+    { l: 'Kengaytirish', i: 'magic', fn: () => aiSlide('expand') },
+    { l: 'Imlo va grammatika', i: 'magic', fn: () => aiSlide('fix') },
+    { l: 'Tarjima: o‘zbekcha', i: 'magic', fn: () => aiSlide('translate_uz') },
+    { l: 'Tarjima: ruscha', i: 'magic', fn: () => aiSlide('translate_ru') },
+    { l: 'Tarjima: inglizcha', i: 'magic', fn: () => aiSlide('translate_en') },
+    { l: 'Spiker izohini yozish', i: 'notes', fn: () => aiSlide('notes') },
+    { l: 'O‘z buyrug‘im…', i: 'text', fn: askCustom },
+    ...(Cloud.isIn() ? [{ sep: 1 }, { l: 'Hisobdan chiqish (' + Cloud.who() + ')', i: 'lock', fn: () => { Cloud.signOut(); toast('Hisobdan chiqildi'); } }] : []),
+  ], 'right'), html: ic('sparkle', 16) + ' <span class="hide-s">AI</span>' });
   const top = h('header', { class: 'topbar' },
     h('button', { class: 'btn-ic', title: 'Bosh sahifa', 'aria-label': 'Bosh sahifa', onclick: () => go('#/'), html: ic('home') }),
     h('div', { class: 'brand-s' }, h('span', { class: 'logo sm', html: ic('layout', 16) })),
@@ -86,7 +102,7 @@ function buildEditor() {
     h('button', { class: 'btn-ic', title: 'Qaytarish (Ctrl+Y)', onclick: redo, html: ic('redo') }),
     h('button', { class: 'btn-ic hide-xs', title: 'Yorug‘/qorong‘i', onclick: toggleUI, html: ic('moon') }),
     h('button', { class: 'btn only-s', title: 'Xossalar paneli', onclick: () => editorEl.classList.toggle('insp-open'), html: ic('palette', 16) + ' <span class="hide-s">Panel</span>' }),
-    exportBtn,
+    aiBtn, exportBtn,
     h('button', { class: 'big sm', onclick: () => { endEdit(); present(S.cur); }, html: ic('play', 14) + ' <span class="hide-s">Namoyish</span>' }));
 
   const tools = h('div', { class: 'tools' },
@@ -109,4 +125,4 @@ initUI(); loadWebFonts();
 addEventListener('hashchange', route);
 route();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
-export { APP_NAME, theme, slide, select, saveState };
+export { APP_NAME, theme, slide, select, saveState, buildSlides };

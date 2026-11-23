@@ -61,6 +61,10 @@ export function addSlide(layoutId = 'bullets', at = S.cur + 1, d) {
   edit(() => { const s = newSlide(layoutId, theme(), d); S.deck.slides.splice(at, 0, s); S.cur = at; S.sel = []; });
   emit('slide'); emit('select');
 }
+export function insertSlides(slides, at = S.cur + 1) {
+  edit(() => { S.deck.slides.splice(at, 0, ...slides); S.cur = at; S.sel = []; });
+  emit('slide'); emit('select');
+}
 export function dupSlide(i = S.cur) {
   edit(() => {
     const c = JSON.parse(json(S.deck.slides[i])); c.id = uid('s'); c.els.forEach(e => { e.id = uid('e'); });
